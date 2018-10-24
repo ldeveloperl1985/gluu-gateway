@@ -155,7 +155,7 @@ function _M.register(conf)
     -- ------------------Register Site----------------------------------
     local setupClientRequest = {
         oxd_host = conf.oxd_http_url,
-        scope = { "openid", "uma_protection" },
+        scope = { "openid", "oxd" },
         op_host = conf.op_server,
         authorization_redirect_uri = "https://client.example.com/cb",
         client_name = "gluu-oauth2-introspect-client",
@@ -185,7 +185,8 @@ function _M.get_client_token(conf)
         oxd_host = conf.oxd_http_url,
         client_id = conf.client_id,
         client_secret = conf.client_secret,
-        op_host = conf.op_server
+        op_host = conf.op_server,
+        scope = { "openid", "oxd" }
     }
 
     local getTokenResponse = oxd.get_client_token(tokenBody)

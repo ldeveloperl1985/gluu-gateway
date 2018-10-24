@@ -27,7 +27,7 @@ describe("gluu-oauth2-rs plugin", function()
             name = "gluu-oauth2-rs",
             api_id = api.id,
             config = {
-                oxd_host = "http://localhost:8553",
+                oxd_host = "https://localhost:8553",
                 uma_server_host = "https://gluu.local.org",
                 protection_document = "[{\"path\":\"/posts\",\"conditions\":[{\"httpMethods\":[\"GET\",\"POST\"],\"scope_expression\":{\"rule\":{\"or\":[{\"var\":0}]},\"data\":[\"https://jsonplaceholder.typicode.com\"]}}]},{\"path\":\"/comments\",\"conditions\":[{\"httpMethods\":[\"GET\"],\"scope_expression\":{\"rule\":{\"and\":[{\"var\":0}]},\"data\":[\"https://jsonplaceholder.typicode.com\"]}}]}]"
             }
@@ -78,7 +78,7 @@ describe("gluu-oauth2-rs plugin", function()
             })
             local wwwAuthenticate = res.headers["WWW-Authenticate"]
             assert.is_truthy(string.find(wwwAuthenticate, "ticket"))
-            assert.res_status(403, res)
+            assert.res_status(401, res)
         end)
 
         it("401 Unauthorized with permission ticket when token is invalid", function()

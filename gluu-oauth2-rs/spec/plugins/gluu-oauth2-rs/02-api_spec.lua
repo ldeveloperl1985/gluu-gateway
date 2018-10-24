@@ -7,7 +7,7 @@ describe("Plugin: gluu-oauth2-rs (API)", function()
     local consumer, api1, api2, api3
     local admin_client
     local op_server = "https://gluu.local.org"
-    local oxd_http_url = "http://localhost:8553"
+    local oxd_http_url = "https://localhost:8553"
 
     setup(function()
         helpers.run_migrations()

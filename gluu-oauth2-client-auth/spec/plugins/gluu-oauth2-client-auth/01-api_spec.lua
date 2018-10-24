@@ -7,7 +7,7 @@ describe("Plugin: gluu-oauth2-client-auth (API)", function()
     local consumer, anonymous_user
     local admin_client
     local op_server = "https://gluu.local.org"
-    local oxd_http_url = "http://localhost:8553"
+    local oxd_http_url = "https://localhost:8553"
     local api1, api2, api3
 
     setup(function()
@@ -313,7 +313,7 @@ describe("Plugin: gluu-oauth2-client-auth (API)", function()
                     op_host = op_server,
                     authorization_redirect_uri = "https://localhost",
                     redirect_uris = { "https://localhost" },
-                    scope = { "clientinfo", "uma_protection" },
+                    scope = { "clientinfo", "oxd" },
                     grant_types = { "client_credentials" },
                     client_name = "Test_existing_client",
                 };
@@ -350,7 +350,7 @@ describe("Plugin: gluu-oauth2-client-auth (API)", function()
                 assert.equal(false, body.mix_mode)
                 assert.equal(false, body.uma_mode)
                 assert.equal(true, body.oauth_mode)
-                assert.equal("clientinfo,uma_protection", body.scope)
+                assert.equal("clientinfo,oxd", body.scope)
             end)
             it("creates oauth2 credentials with the restricted API", function()
                 -- ------------------GET Client Token-------------------------------
@@ -359,7 +359,7 @@ describe("Plugin: gluu-oauth2-client-auth (API)", function()
                     op_host = op_server,
                     authorization_redirect_uri = "https://localhost",
                     redirect_uris = { "https://localhost" },
-                    scope = { "clientinfo", "uma_protection" },
+                    scope = { "clientinfo", "oxd" },
                     grant_types = { "client_credentials" },
                     client_name = "Test_existing_client"
                 };

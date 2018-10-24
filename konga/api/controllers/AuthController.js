@@ -111,7 +111,7 @@ var AuthController = {
       body: {
         client_id: sails.config.clientId,
         client_secret: sails.config.clientSecret,
-        scope: ['openid'],
+        scope: ['openid', 'oxd'],
         op_host: sails.config.opHost
       },
       resolveWithFullResponse: true,
@@ -371,7 +371,7 @@ var AuthController = {
           body: {
             client_id: sails.config.clientId,
             client_secret: sails.config.clientSecret,
-            scope: ['openid', 'uma_protection'],
+            scope: ['openid', 'oxd'],
             op_host: sails.config.opHost
           },
           resolveWithFullResponse: true,

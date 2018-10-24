@@ -40,13 +40,12 @@ function _M.register(conf)
     -- ------------------Register Site----------------------------------
     local siteRequest = {
         oxd_host = conf.oxd_host,
-        scope = { "openid", "uma_protection" },
+        scope = { "openid", "oxd", "uma_protection" },
         op_host = conf.uma_server_host,
         authorization_redirect_uri = "https://client.example.com/cb",
-        response_types = { "code" },
         client_name = "kong-uma-rs-client",
-        setup_client_name = "kong-uma-rs-setup-client",
-        grant_types = { "authorization_code" }
+        grant_types = {"client_credentials"},
+        setup_client_name = "kong-uma-rs-setup-client"
     }
 
     local response = oxd.setup_client(siteRequest)
@@ -69,10 +68,8 @@ function _M.register(conf)
         oxd_host = conf.oxd_host,
         client_id = data.client_id,
         client_secret = data.client_secret,
-        scope = { "openid", "uma_protection" },
-        op_host = conf.uma_server_host,
-        authorization_redirect_uri = "https://client.example.com/cb",
-        grant_types = { "authorization_code" }
+        scope = { "openid", "oxd" },
+        op_host = conf.uma_server_host
     };
     local token = oxd.get_client_token(tokenRequest)
 
@@ -122,10 +119,8 @@ function _M.update_uma_rs(conf)
         oxd_host = conf.oxd_host,
         client_id = conf.client_id,
         client_secret = conf.client_secret,
-        scope = { "openid", "uma_protection" },
-        op_host = conf.uma_server_host,
-        authorization_redirect_uri = "https://client.example.com/cb",
-        grant_types = { "authorization_code" }
+        scope = { "openid", "oxd" },
+        op_host = conf.uma_server_host
     };
     local token = oxd.get_client_token(tokenRequest)
 
@@ -162,7 +157,7 @@ function _M.get_rpt_with_check_access(conf, path, httpMethod, uma_data, rpt)
         oxd_host = conf.oxd_host,
         client_id = conf.client_id,
         client_secret = conf.client_secret,
-        scope = { "openid", "uma_protection" },
+        scope = { "openid", "oxd" },
         op_host = conf.uma_server_host
     };
 
@@ -241,7 +236,7 @@ function _M.check_access(conf, rpt, path, httpMethod)
         oxd_host = conf.oxd_host,
         client_id = conf.client_id,
         client_secret = conf.client_secret,
-        scope = { "openid", "uma_protection" },
+        scope = { "openid", "oxd" },
         op_host = conf.uma_server_host
     };
 
@@ -520,20 +515,33 @@ end
 
 --- Get path
 function _M.get_path(request_path, register_path)
-    if request_path == nil then
+    if request_path == nil or register_path == nil then
         return false
     end
 
-    if register_path == nil then
+    if register_path == "/" then
+        return true
+    end
+
+    if request_path == register_path then
+        return true
+    end
+
+    local register_path_len = #register_path
+    -- check is register_path a prefix of request_path
+    if register_path ~= request_path:sub(1, register_path_len) then
         return false
     end
 
-    local start, last = string.find(request_path, register_path, 1)
-    if start == nil or last == nil or start ~= 1 then
-        return false
+    -- check that prefix match is not partial
+    if request_path:sub(register_path_len + 1, register_path_len + 1) == "/" then
+        return true
     end
 
-    return request_path == register_path or string.sub(request_path, start, last + 1) == register_path .. "/" or string.sub(request_path, start, last + 1) == register_path .. "?"
+    -- we cannot have '?' in request_path, because we get it from ngx.var.uri
+    -- it doesn't contain arguments
+
+    return false
 end
 
 --- Filter request path with parent path

@@ -50,18 +50,6 @@ local function retrieve_uma_data(request)
     return nil
 end
 
---- Fetch given requested path. Example: /posts
--- @return path
-local function getPath()
-    local path = ngx.var.request_uri
-    ngx.log(ngx.DEBUG, PLUGINNAME .. ": request_uri " .. path)
-    local indexOf = string.find(path, "?")
-    if indexOf ~= nil then
-        return string.sub(path, 1, (indexOf - 1))
-    end
-    return path
-end
-
 --- Check response of /uma-rs-check-access
 -- @param umaRSResponse: Full response of uma-rs-check-access command
 -- @param rpt: rpt token
@@ -113,7 +101,7 @@ function _M.execute(conf)
     ngx.log(ngx.DEBUG, "Enter in gluu-oauth2-rs plugin")
     local httpMethod = ngx.req.get_method()
     local reqToken = retrieve_token(ngx.req)
-    local path = getPath()
+    local path = ngx.var.uri
 
     ngx.log(ngx.DEBUG, PLUGINNAME .. ": Access - http_method: " .. httpMethod .. ", reqToken: " .. (reqToken or "nil") .. ", path: " .. path)
 
@@ -136,7 +124,7 @@ function _M.execute(conf)
     local clientPluginCacheToken = singletons.cache:get(reqToken, nil, function() end)
 
     -- Get oauth2-consumer credential for getting all modes(oauth_mode, uma_mode, mix_mode) in here.
-    local oauth2Credential = clientPluginCacheToken.credential
+    local oauth2Credential = clientPluginCacheToken and clientPluginCacheToken.credential
 
     ngx.log(ngx.DEBUG, PLUGINNAME .. " : Cache token: " .. tostring(helper.is_empty(clientPluginCacheToken) == false) .. " oauth2Credential : " .. tostring(helper.is_empty(oauth2Credential) == false))
     if helper.is_empty(clientPluginCacheToken) or helper.is_empty(oauth2Credential) then

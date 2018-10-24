@@ -19,7 +19,7 @@ describe("gluu-oauth2-client-auth plugin", function()
     local plugin, plugin_anonymous, plugin4, plugin5
     local timeout = 6000
     local op_server = "https://gluu.local.org"
-    local oxd_http = "http://localhost:8553"
+    local oxd_http = "https://localhost:8553"
     local OAUTH_CLIENT_ID = "x-oauth-client-id"
     local OAUTH_EXPIRATION = "x-oauth-expiration"
     local OAUTH_SCOPES = "x-authenticated-scope"
@@ -694,7 +694,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = gluu_oauth2_rs_plugin.config.oxd_host,
                     client_id = gluu_oauth2_rs_plugin.config.client_id,
                     client_secret = gluu_oauth2_rs_plugin.config.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = gluu_oauth2_rs_plugin.config.uma_server_host
                 };
 
@@ -716,7 +716,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = oauth2_consumer_oauth_mode.oxd_http_url,
                     client_id = oauth2_consumer_oauth_mode.client_id,
                     client_secret = oauth2_consumer_oauth_mode.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = oauth2_consumer_oauth_mode.op_host
                 };
 
@@ -959,7 +959,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = gluu_oauth2_rs_plugin.config.oxd_host,
                     client_id = gluu_oauth2_rs_plugin.config.client_id,
                     client_secret = gluu_oauth2_rs_plugin.config.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = gluu_oauth2_rs_plugin.config.uma_server_host
                 };
 
@@ -981,7 +981,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = oauth2_consumer_with_uma_mode.oxd_http_url,
                     client_id = oauth2_consumer_with_uma_mode.client_id,
                     client_secret = oauth2_consumer_with_uma_mode.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = oauth2_consumer_with_uma_mode.op_host
                 };
 
@@ -1062,7 +1062,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = gluu_oauth2_rs_plugin.config.oxd_host,
                     client_id = gluu_oauth2_rs_plugin.config.client_id,
                     client_secret = gluu_oauth2_rs_plugin.config.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = gluu_oauth2_rs_plugin.config.uma_server_host
                 };
 
@@ -1084,7 +1084,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = oauth2_consumer_oauth_mode.oxd_http_url,
                     client_id = oauth2_consumer_oauth_mode.client_id,
                     client_secret = oauth2_consumer_oauth_mode.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = oauth2_consumer_oauth_mode.op_host
                 };
 
@@ -1271,7 +1271,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = gluu_oauth2_rs_plugin.config.oxd_host,
                     client_id = gluu_oauth2_rs_plugin.config.client_id,
                     client_secret = gluu_oauth2_rs_plugin.config.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = gluu_oauth2_rs_plugin.config.uma_server_host
                 };
 
@@ -1293,7 +1293,7 @@ describe("gluu-oauth2-client-auth plugin", function()
                     oxd_host = oauth2_consumer_with_uma_mode_allow_unprotected_path.oxd_http_url,
                     client_id = oauth2_consumer_with_uma_mode_allow_unprotected_path.client_id,
                     client_secret = oauth2_consumer_with_uma_mode_allow_unprotected_path.client_secret,
-                    scope = { "openid", "uma_protection" },
+                    scope = { "openid", "oxd" },
                     op_host = oauth2_consumer_with_uma_mode_allow_unprotected_path.op_host
                 };
 

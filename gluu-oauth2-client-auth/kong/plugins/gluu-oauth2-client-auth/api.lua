@@ -77,10 +77,10 @@ return {
 
             -- Default: scope - client_credentials
             if (helper.is_empty(self.params.scope)) then
-                self.params.scope = "clientinfo,uma_protection"
+                self.params.scope = "clientinfo,oxd"
                 scope = helper.split(self.params.scope, ",")
             else
-                self.params.scope = self.params.scope .. ",clientinfo,uma_protection"
+                self.params.scope = self.params.scope .. ",clientinfo,oxd"
                 scope = helper.split(self.params.scope, ",")
             end
 
