@@ -634,7 +634,6 @@ if __name__ == "__main__":
                   + 'city'.ljust(30) + kongSetup.city.rjust(35) + "\n" \
                   + 'state'.ljust(30) + kongSetup.state.rjust(35) + "\n" \
                   + 'country'.ljust(30) + kongSetup.countryCode.rjust(35) + "\n" \
-                  + 'Configure oxd-server'.ljust(30) + repr(kongSetup.installOxd).rjust(35) + "\n" \
                   + 'oxd https url'.ljust(30) + kongSetup.kongaOxdWeb.rjust(35) + "\n" \
                   + 'OP hostname'.ljust(30) + kongSetup.kongaOPHost.rjust(35) + "\n"
 
