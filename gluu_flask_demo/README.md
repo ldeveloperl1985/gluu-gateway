@@ -177,6 +177,7 @@ Follow these steps:
 - Fill in the following boxes:
 
   **Hosts:** non-claim-gathering.mygluu.org
+  
   **Paths:** /posts
 
 !!! Note  
@@ -213,7 +214,7 @@ If everything goes well, you will see the following on your browser:
 
 ![Non-Claim gathering](img/gg_none_claim_result.png)
 
-### Create Service, Route and Plugin for Non-Claim Gathering
+### Create Service, Route and Plugin for Claim Gathering
 #### Create Service
 The same as Non-Claim Gathering, but change Name and Host to:
 
