@@ -15,7 +15,10 @@ import getpass
 import urllib3
 import platform
 
-requests.packages.urllib3.disable_warnings()
+try:
+    requests.packages.urllib3.disable_warnings()
+except:
+    pass
 
 class Distribution:
     Ubuntu = "ubuntu"
