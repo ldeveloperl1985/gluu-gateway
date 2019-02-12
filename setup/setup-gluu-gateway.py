@@ -108,8 +108,7 @@ class KongSetup(object):
         self.distOxdServerConfigFile = '%s/oxd-server.yml' % self.distOxdServerConfigPath
 
         self.kongaService = 'gluu-gateway'
-        self.oxdServerService = 'oxd-server-4.0.beta' # change this when oxd-server-4.0 is released
-
+        self.oxdServerService = 'oxd-server'
         # oxd kong Property values
         self.kongaPort = '1338'
         self.kongaPolicyType = 'uma_rpt_policy'
