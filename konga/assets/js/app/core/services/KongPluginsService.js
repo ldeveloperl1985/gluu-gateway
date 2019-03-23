@@ -76,11 +76,15 @@
                 plugins: {
                   "gluu-oauth-pep": {
                     hideIfNotInConsumerContext: true,
-                    description: "The OAuth PEP is used to enforce the presence of OAuth scopes for access to resources protected by the Gateway. OAuth scopes are defined in an external OAuth Authorization Server (AS) -- in most cases the Gluu Server. The Gateway and AS leverage the oxd OAuth middleware service for communication."
+                    description: "Allow to configure OAuth Authentication and PEP. The OAuth PEP is used to enforce the presence of OAuth scopes for access to resources protected by the Gateway. OAuth scopes are defined in an external OAuth Authorization Server (AS) -- in most cases the Gluu Server. The Gateway and AS leverage the oxd OAuth middleware service for communication."
                   },
                   "gluu-uma-pep": {
                     hideIfNotInConsumerContext: true,
-                    description: "The UMA PEP plugin is used to enforce the presence of UMA scopes for access to resources protected by the Gateway. UMA scopes and policies are defined in an external UMA Authorization Server (AS) -- in most cases the Gluu Server. The Gateway and AS leverage the oxd UMA middleware service for communication."
+                    description: "Allow to configure UMA Authentication and PEP. The UMA PEP is used to enforce the presence of UMA scopes for access to resources protected by the Gateway. UMA scopes and policies are defined in an external UMA Authorization Server (AS) -- in most cases the Gluu Server. The Gateway and AS leverage the oxd UMA middleware service for communication."
+                  },
+                  "gluu-openid": {
+                    hideIfNotInConsumerContext: true,
+                    description: "The Gluu OpenID Connect + UMA security."
                   },
                   "acl": {
                     hideIfNotInConsumerContext: true,

@@ -37,8 +37,8 @@
          ng-class="{'panel-success' : existingPlugins.indexOf(key) > -1, 'panel-default' : existingPlugins.indexOf(key) < 0}">
       <div class="panel-heading">
         <div class="panel-title">
-          <span class="capitalize" data-ng-if="key == 'gluu-oauth-pep'">Gluu OAuth PEP</span>
-          <span class="capitalize" data-ng-if="key == 'gluu-uma-pep'">Gluu UMA PEP</span>
+          <span class="capitalize" data-ng-if="key == 'gluu-oauth-pep'">Gluu OAuth Auth & PEP</span>
+          <span class="capitalize" data-ng-if="key == 'gluu-uma-pep'">Gluu UMA Auth & PEP</span>
           <span class="capitalize" data-ng-if="key != 'gluu-oauth-pep' && key != 'gluu-uma-pep'">{{key.split('-').join(" ")}}</span>
           <div class="pull-right">
             <!--Add Button in kong plugins case-->

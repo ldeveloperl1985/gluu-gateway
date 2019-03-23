@@ -57,6 +57,11 @@
             return $state.go("services.uma-plugin", {service_id: $scope.service.id});
           }
 
+          if (name == "gluu-openid") {
+            $uibModalInstance.dismiss();
+            return $state.go("services.openid-plugin", {service_id: $scope.service.id});
+          }
+
           var modalInstance = $uibModal.open({
             animation: true,
             ariaLabelledBy: 'modal-title',

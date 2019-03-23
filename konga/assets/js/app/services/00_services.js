@@ -175,6 +175,50 @@
               }
             }
           })
+          .state('services.openid-plugin', {
+            url: '/:service_id/openid-plugin',
+            data: {
+              pageName: "Gluu OpenID Connect plugin",
+              pageDescription: "The Gluu OpenID Connect and UMA security.",
+              displayName: "Gluu OpenID Connect plugin",
+              prefix: '<i class="mdi mdi-pencil"></i>'
+            },
+            views: {
+              'content@': {
+                templateUrl: 'js/app/plugins/openid-plugin.html',
+                controller: 'OpenIDPluginController',
+                resolve: {
+                  _context_name: [
+                    '$log',
+                    function resolve() {
+                      return 'service';
+                    }
+                  ],
+                  _context_data: [
+                    '$stateParams',
+                    'ServiceService',
+                    '$log',
+                    function resolve($stateParams,
+                                     ServiceService) {
+                      return ServiceService.findById($stateParams.service_id)
+                    }
+                  ],
+                  _plugins: [
+                    'PluginsService', '$stateParams',
+                    function resolve(PluginsService, $stateParams) {
+                      return PluginsService.load({service_id: $stateParams.service_id})
+                    }
+                  ],
+                  _activeNode: [
+                    'NodesService',
+                    function resolve(NodesService) {
+                      return NodesService.isActiveNodeSet()
+                    }
+                  ],
+                }
+              }
+            }
+          })
           .state('services.plugins', {
             url: '/:service_id/plugins',
             params: {

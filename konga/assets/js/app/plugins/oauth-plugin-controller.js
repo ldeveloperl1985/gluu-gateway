@@ -32,7 +32,7 @@
         }
 
         $scope.modelPlugin = {
-          name: 'gluu-oauth-pep',
+          isPEPEnabled: true,
           config: {
             oxd_url: $scope.globalInfo.oxdWeb,
             op_url: $scope.globalInfo.opHost,
@@ -40,7 +40,6 @@
             client_id: $scope.globalInfo.clientId,
             client_secret: $scope.globalInfo.clientSecret,
             oauth_scope_expression: [],
-            ignore_scope: false,
             deny_by_default: true,
             hide_credentials: false
           }
@@ -56,13 +55,31 @@
 
         $scope.isPluginAdded = false;
         setTimeout(function () {
-        $scope.plugins.forEach(function (o) {
-          if (o.name == "gluu-oauth-pep") {
-            $scope.modelPlugin = o;
+          var authPlugin, pepPlugin;
+
+          $scope.plugins.forEach(function (o) {
+            if (o.name == "gluu-oauth-auth") {
+              authPlugin = o;
+            }
+            if (o.name == "gluu-oauth-pep") {
+              pepPlugin = o;
+            }
+          });
+
+          if (authPlugin) {
+            $scope.modelPlugin = authPlugin;
+            $scope.modelPlugin.authId = authPlugin.id;
+            $scope.modelPlugin.isPEPEnabled = false;
+          }
+
+          if (pepPlugin) {
+            $scope.modelPlugin.pepId = pepPlugin.id;
+            $scope.modelPlugin.config.deny_by_default = pepPlugin.config.deny_by_default;
+            $scope.modelPlugin.isPEPEnabled = true;
             $scope.isPluginAdded = true;
             $scope.ruleScope = {};
             $scope.ruleOauthScope = {};
-            $scope.modelPlugin.config.oauth_scope_expression = o.config.oauth_scope_expression || [];
+            $scope.modelPlugin.config.oauth_scope_expression = pepPlugin.config.oauth_scope_expression || [];
             setTimeout(function () {
               if ($scope.modelPlugin.config.oauth_scope_expression && $scope.modelPlugin.config.oauth_scope_expression.length > 0) {
                 $scope.modelPlugin.config.oauth_scope_expression.forEach(function (path, pIndex) {
@@ -135,7 +152,8 @@
               }
             }, 500);
           }
-        })}, 100);
+
+        }, 100);
         /**
          * ----------------------------------------------------------------------
          * Functions
@@ -302,46 +320,85 @@
             delete model.config.oauth_scope_expression
           }
 
-          if (!model.config.ignore_scope && !model.config.oauth_scope_expression) {
+          if (model.isPEPEnabled && !model.config.oauth_scope_expression) {
             MessageService.error("OAuth scope expression is required");
             return;
           }
 
-          PluginsService.addOAuthClient({
-            oxd_id: model.config.oxd_id || null,
-            client_id: model.config.client_id || null,
-            client_secret: model.config.client_secret || null,
-            client_name: 'gluu-introspect-client',
-            op_host: model.config.op_url,
-            oxd_url: model.config.oxd_url
-          })
+          PluginsService
+            .addOAuthClient({
+              oxd_id: model.config.oxd_id || null,
+              client_id: model.config.client_id || null,
+              client_secret: model.config.client_secret || null,
+              client_name: 'gluu-introspect-client',
+              op_host: model.config.op_url,
+              oxd_url: model.config.oxd_url
+            })
             .then(function (response) {
               var oauthClient = response.data;
-              model.config.oxd_id = oauthClient.oxd_id;
-              model.config.client_id = oauthClient.client_id;
-              model.config.client_secret = oauthClient.client_secret;
-
-              PluginHelperService.addPlugin(
-                model,
+              var oauthModel = {
+                name: 'gluu-oauth-auth',
+                config: {
+                  oxd_id: oauthClient.oxd_id,
+                  client_id: oauthClient.client_id,
+                  client_secret: oauthClient.client_secret,
+                  op_url: model.config.op_url,
+                  oxd_url: model.config.oxd_url,
+                  anonymous: model.config.anonymous,
+                  hide_credentials: model.config.hide_credentials || false
+                }
+              };
+              if ($scope.context_name) {
+                oauthModel[$scope.context_name + "_id"] = $scope.context_data.id;
+              }
+              return new Promise(function (resolve, reject) {
+                return PluginHelperService.addPlugin(
+                  oauthModel,
+                  function success(res) {
+                    // $state.go(($scope.context_name || "plugin") + "s");
+                    // MessageService.success('Plugin added successfully!');
+                    return resolve(oauthClient);
+                  }, function (err) {
+                    return reject(err);
+                  });
+              });
+            })
+            .then(function (oauthClient) {
+              var oauthModel = {
+                name: 'gluu-oauth-pep',
+                config: {
+                  oxd_id: oauthClient.oxd_id,
+                  client_id: oauthClient.client_id,
+                  client_secret: oauthClient.client_secret,
+                  op_url: model.config.op_url,
+                  oxd_url: model.config.oxd_url,
+                  oauth_scope_expression: model.config.oauth_scope_expression,
+                  deny_by_default: model.config.deny_by_default || false
+                }
+              };
+              if ($scope.context_name) {
+                oauthModel[$scope.context_name + "_id"] = $scope.context_data.id;
+              }
+              return PluginHelperService.addPlugin(
+                oauthModel,
                 function success(res) {
                   $state.go(($scope.context_name || "plugin") + "s");
                   MessageService.success('Plugin added successfully!');
                 }, function (err) {
-                  $scope.busy = false;
-                  $log.error("create plugin", err);
-                  if (err.data.body) {
-                    Object.keys(err.data.body).forEach(function (key) {
-                      MessageService.error(key + " : " + err.data.body[key]);
-                    })
-                  } else {
-                    MessageService.error("Invalid OAuth scope expression");
-                  }
+                  return Promise.reject(err);
                 });
-
             })
             .catch(function (error) {
+              $scope.busy = false;
+              $log.error("create plugin", error);
               console.log(error);
-              MessageService.error("Failed to register client");
+              if (error.data.body) {
+                Object.keys(error.data.body).forEach(function (key) {
+                  MessageService.error(key + " : " + error.data.body[key]);
+                });
+                return
+              }
+              MessageService.error("Failed!");
             });
         }
 
@@ -355,27 +412,89 @@
             model.config.oauth_scope_expression = null;
           }
 
-          if (!model.config.ignore_scope && !model.config.oauth_scope_expression) {
+          if (model.isPEPEnabled && !model.config.oauth_scope_expression) {
             MessageService.error("OAuth scope expression is required");
             return;
           }
 
-          PluginHelperService.updatePlugin(model.id,
-            model,
-            function success(res) {
-              $scope.busy = false;
-              MessageService.success('Plugin updated successfully!');
-              $state.go(($scope.context_name || "plugin") + "s"); // return to plugins page if specified
-            }, function (err) {
-              $log.error("create plugin", err);
-              if (err.data.body) {
-                Object.keys(err.data.body).forEach(function (key) {
-                  MessageService.error(key + " : " + err.data.body[key]);
-                })
-              } else {
-                MessageService.error("Invalid OAuth scope expression");
+          var oauthModel = {
+            name: 'gluu-oauth-auth',
+            config: {
+              oxd_id: model.oxd_id,
+              client_id: model.client_id,
+              client_secret: model.client_secret,
+              op_url: model.config.op_url,
+              oxd_url: model.config.oxd_url,
+              anonymous: model.config.anonymous,
+              hide_credentials: model.config.hide_credentials || false
+            }
+          };
+          if ($scope.context_name) {
+            oauthModel[$scope.context_name + "_id"] = $scope.context_data.id;
+          }
+          return new Promise(function (resolve, reject) {
+            return PluginHelperService.updatePlugin(model.authId,
+              oauthModel,
+              function success(res) {
+                return resolve();
+              }, function (err) {
+                return reject(err);
+              });
+          })
+            .then(function () {
+              var oauthModel = {
+                name: 'gluu-oauth-pep',
+                config: {
+                  oxd_id: model.oxd_id,
+                  client_id: model.client_id,
+                  client_secret: model.client_secret,
+                  op_url: model.config.op_url,
+                  oxd_url: model.config.oxd_url,
+                  oauth_scope_expression: model.config.oauth_scope_expression,
+                  deny_by_default: model.config.deny_by_default || false
+                }
+              };
+              if ($scope.context_name) {
+                oauthModel[$scope.context_name + "_id"] = $scope.context_data.id;
               }
+              return PluginHelperService.updatePlugin(model.pepId,
+                oauthModel,
+                function success(res) {
+                  $state.go(($scope.context_name || "plugin") + "s");
+                  MessageService.success('Plugin added successfully!');
+                }, function (err) {
+                  return Promise.reject(err);
+                });
+            })
+            .catch(function (error) {
+              $scope.busy = false;
+              $log.error("create plugin", error);
+              console.log(error);
+              if (error.data.body) {
+                Object.keys(error.data.body).forEach(function (key) {
+                  MessageService.error(key + " : " + error.data.body[key]);
+                });
+                return
+              }
+              MessageService.error("Failed!");
             });
+
+          // PluginHelperService.updatePlugin(model.id,
+          //   model,
+          //   function success(res) {
+          //     $scope.busy = false;
+          //     MessageService.success('Plugin updated successfully!');
+          //     $state.go(($scope.context_name || "plugin") + "s"); // return to plugins page if specified
+          //   }, function (err) {
+          //     $log.error("create plugin", err);
+          //     if (err.data.body) {
+          //       Object.keys(err.data.body).forEach(function (key) {
+          //         MessageService.error(key + " : " + err.data.body[key]);
+          //       })
+          //     } else {
+          //       MessageService.error("Invalid OAuth scope expression");
+          //     }
+          //   });
         }
 
         function loadMethods(query) {
