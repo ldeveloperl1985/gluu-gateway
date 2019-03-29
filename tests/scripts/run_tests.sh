@@ -2,17 +2,6 @@
 
 DISTRIBUTION=$1
 
-if [ "$DISTRIBUTION" == "xenial" ]; then
-	apt-get install jq -y
-fi
-
-if [ "$DISTRIBUTION" == "centos7" ]; then
-	yum -y install wget curl lsof
-	wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-	chmod +x ./jq
-	cp jq /usr/bin
-fi
-
 # Init
 HOST=$2
 OP_HOST=$3

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DISTRIBUTION=$1
+OP_HOST=$2
 
 function prepareSourcesXenial {
     sleep 120
@@ -97,7 +98,7 @@ function configureGG {
  sed -i "18ihost: '0.0.0.0'," /opt/gluu-gateway/konga/config/env/development.js
  sed -i "18ihost: '0.0.0.0'," /opt/gluu-gateway/konga/config/env/production.js
  cd /opt/gluu-gateway/setup
- python setup-gluu-gateway.py '{"oxdAuthorizationRedirectUri":"dev1.gluu.org","license":true,"ip":"104.131.18.41","hostname":"dev1.gluu.org","countryCode":"TS","state":"Test","city":"Test","orgName":"Test","admin_email":"admin@test.com","pgPwd":"test123","installOxd":true,"kongaOPHost":"ce-dev6.gluu.org","oxdServerOPDiscoveryPath":"oxauth","kongaOxdWeb":"https://localhost:8443","generateClient":true, "oxdHost":"dev1.gluu.org"}'
+ python setup-gluu-gateway.py '{"oxdAuthorizationRedirectUri":"dev1.gluu.org","license":true,"ip":"104.131.18.41","hostname":"dev1.gluu.org","countryCode":"TS","state":"Test","city":"Test","orgName":"Test","admin_email":"admin@test.com","pgPwd":"test123","installOxd":true,"kongaOPHost":"'$OP_HOST'","oxdServerOPDiscoveryPath":"oxauth","kongaOxdWeb":"https://localhost:8443","generateClient":true, "oxdHost":"dev1.gluu.org"}'
 }
 
 function createSwap {
