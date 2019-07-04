@@ -13,7 +13,7 @@ OP_HOST=$3
 OXD_HOST='localhost'
 KONG_PROXY_HOST=$2
 KONG_ADMIN_HOST='localhost'
-
+OXD_PORT=8443
 
 # Create service in kong
 SERVICE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/services/  -H 'Content-Type: application/json'  -d '{"name":"jsonplaceholder","url":"https://jsonplaceholder.typicode.com"}'`
@@ -26,9 +26,9 @@ ROUTE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/routes/ -H 'Content
 ROUTE_ID=`echo $ROUTE_RESPONSE | jq -r ".id"`
 echo "ROUTE_ID " .. $ROUTE_ID
 
-# Create OP Client for OAUTH_PEP
+# Create OP Client for OAuth plugin
 
-OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"]}'`
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"]}'`
 
 OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
 CLIENT_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".client_id"`
@@ -42,15 +42,23 @@ METRICS_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  
 
 echo 'METRICS_PLUGIN_RESPONSE ' .. $METRICS_PLUGIN_RESPONSE
 
-# Config plugin
-OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-pep","config":{"oxd_url":"https://'$OXD_HOST':8443","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","oauth_scope_expression":[{"path":"/posts","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}]},{"path":"/comments","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}]}],"ignore_scope":false,"deny_by_default":true,"hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
+# Config plugins
+## OAUTH-AUTH
+OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
 
 OAUTH_PLUGIN_ID=`echo $OAUTH_PLUGIN_RESPONSE | jq -r ".id"`
-echo "OAUTH_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
+echo $OAUTH_PLUGIN_RESPONSE
+echo "OAUTH_AUTH_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
+
+## OAUTH-PEP
+OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-pep","config":{"method_path_tree":{"POST":{"posts":{"??":{"#":{"path":"/posts/??","scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}}},"comments":{"??":{"#":{"path":"/comments/??","scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}}}},"DELETE":{"posts":{"??":{"#":{"path":"/posts/??","scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}}},"comments":{"??":{"#":{"path":"/comments/??","scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}}}},"PUT":{"posts":{"??":{"#":{"path":"/posts/??","scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}}},"comments":{"??":{"#":{"path":"/comments/??","scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}}}},"GET":{"posts":{"??":{"#":{"path":"/posts/??","scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}}},"comments":{"??":{"#":{"path":"/comments/??","scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}}}}},"client_id":"'$CLIENT_ID'","oauth_scope_expression":[{"path":"/posts/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["oxd","openid"]}}]},{"path":"/comments/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["oxd"]}}]}],"op_url":"https://'$OP_HOST'","deny_by_default":true,"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","client_secret":"'$CLIENT_SECRET'","oxd_id":"'$OXD_ID'"},"service_id":"'$SERVICE_ID'"}'`
+
+OAUTH_PLUGIN_ID=`echo $OAUTH_PLUGIN_RESPONSE | jq -r ".id"`
+echo "OAUTH_PEP_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
 
 # Create OP Client for Consumer
 
-OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"]}'`
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"]}'`
 
 CONSUMER_OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
 CONSUMER_CLIENT_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".client_id"`
@@ -68,7 +76,7 @@ echo "CONSUMER_ID " .. $CONSUMER_ID
 
 
 # OAUTH
-RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CONSUMER_CLIENT_ID'","client_secret":"'$CONSUMER_CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
+RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CONSUMER_CLIENT_ID'","client_secret":"'$CONSUMER_CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
 
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
 echo "Access Token " .. $TOKEN
@@ -101,7 +109,7 @@ echo "ROUTE_ID " .. $ROUTE_ID
 
 # Create OP Client for UMA_PEP
 
-OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_uma_pep", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "scope": ["openid", "oxd", "uma_protection"], "grant_types":["client_credentials"]}'`
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_uma_pep", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "scope": ["openid", "oxd", "uma_protection"], "grant_types":["client_credentials"]}'`
 
 OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
 CLIENT_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".client_id"`
@@ -112,34 +120,45 @@ echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
 # Register resources using OXD
 # GET PROTECTION TOKEN
-RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
+RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
 
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
 echo "PROTECTION TOKEN " .. $TOKEN
 
-RS_PROTECT_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/uma-rs-protect -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json" -d  '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/posts","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["admin","employee"]}}]},{"path":"/comments","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["admin"]}}]}]}'`
+RS_PROTECT_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json" -d  '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/posts/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["admin","employee"]}}]},{"path":"/comments/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["admin"]}}]}]}'`
 
 echo "RS_PROTECT_CLIENT_RESPONSE " .. $RS_PROTECT_CLIENT_RESPONSE
 
+# Create anonymous kong consumer
+anonymous_CONSUMER_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/consumers/  -H 'Content-Type: application/json'  -d '{"username":"anonymous","custom_id":"anonymous"}'`
+
+anonymous_CONSUMER_ID=`echo $anonymous_CONSUMER_RESPONSE | jq -r ".id"`
+echo "anonymous CONSUMER_ID " .. $anonymous_CONSUMER_ID
 
 # Config plugin
-UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-pep","config":{"oxd_url":"https://'$OXD_HOST':8443","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","uma_scope_expression":[{"path":"/posts","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["admin","employee"]}}]},{"path":"/comments","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["admin"]}}]}],"ignore_scope":false,"deny_by_default":true,"hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
+## UMA-AUTH
+UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-auth","config":{"anonymous": "'$anonymous_CONSUMER_ID'", "oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
 
 UMA_PLUGIN_ID=`echo $UMA_PLUGIN_RESPONSE | jq -r ".id"`
-echo "UMA_PLUGIN_ID " .. $UMA_PLUGIN_ID
+echo "UMA_AUTH_PLUGIN_ID " .. $UMA_PLUGIN_ID
 
+## UMA-PEP
+UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-pep","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","uma_scope_expression":[{"path":"/posts/??","conditions":[{"httpMethods":["GET","POST","PUT","PATCH","DELETE"]}]},{"path":"/comments/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT","PATCH"]}]}],"method_path_tree":{"DELETE":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"PUT":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"POST":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"PATCH":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"GET":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}}},"deny_by_default":true},"service_id":"'$SERVICE_ID'"}'`
+
+UMA_PLUGIN_ID=`echo $UMA_PLUGIN_RESPONSE | jq -r ".id"`
+echo "UMA_PEP_PLUGIN_ID " .. $UMA_PLUGIN_ID
 
 # UMA Auth
 TICKET=`curl -i -sS -X GET http://$KONG_PROXY_HOST:8000/posts/1 -H 'Host: jsonplaceholder2.typicode.com' | sed -n 's/.*ticket="//p'`
 TICKET="${TICKET%??}"
-echo $TICKET
+echo "TICKET " .. $TICKET
 
-RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CONSUMER_CLIENT_ID'","client_secret":"'$CONSUMER_CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
+RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CONSUMER_CLIENT_ID'","client_secret":"'$CONSUMER_CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
 
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
 echo "PROTECTION Token " .. $TOKEN
 
-RESPONSE=`curl -k -X POST https://$OXD_HOST:8443/uma-rp-get-rpt -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"oxd_id":"'$CONSUMER_OXD_ID'","ticket":"'$TICKET'"}'`
+RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rp-get-rpt -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"oxd_id":"'$CONSUMER_OXD_ID'","ticket":"'$TICKET'"}'`
 
 echo $RESPONSE
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
