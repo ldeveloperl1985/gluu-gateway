@@ -8,6 +8,7 @@ OXD_HOST=$5
 
 function prepareSourcesXenial {
     sleep 120
+    apt-get update
     echo "deb https://repo.gluu.org/ubuntu/ xenial-devel main" > /etc/apt/sources.list.d/gluu-repo.list
     curl https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
     echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > /etc/apt/sources.list.d/psql.list
@@ -15,6 +16,7 @@ function prepareSourcesXenial {
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     pkill .*upgrade.*
     rm /var/lib/dpkg/lock
+    sleep 60
 }
 
 function prepareSourcesCentos6 {
@@ -49,8 +51,6 @@ function prepareSourcesForDistribution {
 }
 
 function installGGDeb {
-    rm /var/lib/dpkg/updates/*
-    dpkg --configure -a
     apt-get update
     apt-get install gluu-gateway -y
 }
