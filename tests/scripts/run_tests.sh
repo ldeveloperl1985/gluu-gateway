@@ -58,7 +58,7 @@ echo "OAUTH_PEP_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
 
 # Create OP Client for Consumer
 
-OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"]}'`
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "authorization_redirect_uri": "https://client.example.com/cb", "grant_types":["client_credentials"], "scope": ["openid", "oxd", "uma_protection"]}'`
 
 CONSUMER_OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
 CONSUMER_CLIENT_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".client_id"`
