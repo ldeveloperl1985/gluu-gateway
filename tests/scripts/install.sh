@@ -15,6 +15,7 @@ function prepareSourcesXenial {
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     pkill .*upgrade.*
     rm /var/lib/dpkg/lock
+    dpkg --configure -a
 }
 
 function prepareSourcesCentos6 {
