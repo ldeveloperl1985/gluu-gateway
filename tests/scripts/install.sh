@@ -2,6 +2,9 @@
 
 DISTRIBUTION=$1
 OP_HOST=$2
+HOST=$3
+HOST_IP=$4
+OXD_HOST=$5
 
 function prepareSourcesXenial {
     sleep 120
@@ -12,33 +15,6 @@ function prepareSourcesXenial {
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     pkill .*upgrade.*
     rm /var/lib/dpkg/lock
-}
-
-function prepareSourcesJessie {
-    apt-get install xvfb curl apt-transport-https -y
-    echo "deb https://repo.gluu.org/debian/ testing main" > /etc/apt/sources.list.d/gluu-repo.list
-    curl https://repo.gluu.org/debian/gluu-apt.key | apt-key add -
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main" > /etc/apt/sources.list.d/psql.list
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-    curl -sL https://deb.nodesource.com/setup_8.x |  bash -
-}
-
-function prepareSourcesStretch {
-    export DEBIAN_FRONTEND="noninteractive"
-    echo "deb http://deb.debian.org/debian/ stable main contrib non-free" > /etc/apt/sources.list
-    echo "deb-src http://deb.debian.org/debian/ stable main contrib non-free" >> /etc/apt/sources.list
-    echo "deb http://deb.debian.org/debian/ stable-updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb-src http://deb.debian.org/debian/ stable-updates main contrib non-free" >> /etc/apt/sources.list
-    echo "deb http://deb.debian.org/debian-security stable/updates main" >> /etc/apt/sources.list
-    echo "deb-src http://deb.debian.org/debian-security stable/updates main" >> /etc/apt/sources.list
-
-    apt-get update
-    apt-get install lsof curl apt-transport-https -y
-    echo "deb https://repo.gluu.org/debian/ stretch-testing main" > /etc/apt/sources.list.d/gluu-repo.list
-    curl https://repo.gluu.org/debian/gluu-apt.key | apt-key add -
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" > /etc/apt/sources.list.d/psql.list
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-    curl -sL https://deb.nodesource.com/setup_8.x |  bash -
 }
 
 function prepareSourcesCentos6 {
@@ -67,8 +43,6 @@ function prepareSourcesCentos7 {
 function prepareSourcesForDistribution {
     case $DISTRIBUTION in
         "xenial") prepareSourcesXenial ;;
-        "debian8") prepareSourcesJessie ;;
-        "debian9") prepareSourcesStretch ;;
         "centos6") prepareSourcesCentos6 ;;
         "centos7") prepareSourcesCentos7 ;;
     esac
@@ -87,21 +61,17 @@ function installGGRpm {
 function installGG {
     case $DISTRIBUTION in
         "xenial") installGGDeb ;;
-        "debian8") installGGDeb ;;
-        "debian9") installGGDeb ;;
         "centos6") installGGRpm ;;
         "centos7") installGGRpm ;;
     esac
 }
 
 function configureGG {
- sed -i "18ihost: '0.0.0.0'," /opt/gluu-gateway/konga/config/env/development.js
- sed -i "18ihost: '0.0.0.0'," /opt/gluu-gateway/konga/config/env/production.js
+ # Used to open port publicly
+ sed -i "76s/explicitHost: 'localhost'/explicitHost: '0.0.0.0'/" /opt/gluu-gateway/setup/templates/local.js
 
-# wget https://raw.githubusercontent.com/ldeveloperl1985/gluu-gateway/master/setup/setup-gluu-gateway.py
-# mv /root/setup-gluu-gateway.py /opt/gluu-gateway/setup
  cd /opt/gluu-gateway/setup
- python setup-gluu-gateway.py '{"oxdAuthorizationRedirectUri":"dev1.gluu.org","license":true,"ip":"104.131.18.41","hostname":"dev1.gluu.org","countryCode":"TS","state":"Test","city":"Test","orgName":"Test","admin_email":"admin@test.com","pgPwd":"test123","installOxd":true,"kongaOPHost":"'$OP_HOST'","oxdServerOPDiscoveryPath":"oxauth","kongaOxdWeb":"https://localhost:8443","generateClient":true, "oxdHost":"dev1.gluu.org"}'
+ python setup-gluu-gateway.py '{"oxd_authorization_redirect_uri":"'$HOST'","konga_oxd_web":"https://'$OXD_HOST':8443","license":true,"ip":"'$HOST_IP'","host_name":"'$HOST'","country_code":"US","state":"US","city":"NY","org_name":"Test","admin_email":"test@test.com","pg_pwd":"admin","install_oxd":true,"konga_op_host":"'$OP_HOST'","generate_client":true}'
 }
 
 function createSwap {
