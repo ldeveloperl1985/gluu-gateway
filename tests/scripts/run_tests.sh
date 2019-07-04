@@ -37,11 +37,6 @@ echo "OXD_ID " .. $OXD_ID
 echo "CLIENT_ID " .. $CLIENT_ID
 echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
-# Add Metrics plugin globally
-METRICS_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-metrics"}'`
-
-echo 'METRICS_PLUGIN_RESPONSE ' .. $METRICS_PLUGIN_RESPONSE
-
 # Config plugins
 ## OAUTH-AUTH
 OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
