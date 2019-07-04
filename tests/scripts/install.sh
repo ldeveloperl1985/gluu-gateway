@@ -15,7 +15,6 @@ function prepareSourcesXenial {
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     pkill .*upgrade.*
     rm /var/lib/dpkg/lock
-    dpkg --configure -a
 }
 
 function prepareSourcesCentos6 {
@@ -52,6 +51,7 @@ function prepareSourcesForDistribution {
 function installGGDeb {
     apt-get update
     rm /var/lib/dpkg/updates/*
+    dpkg --configure -a
     apt-get install gluu-gateway -y
 }
 
