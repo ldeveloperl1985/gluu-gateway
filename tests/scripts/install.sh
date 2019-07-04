@@ -13,8 +13,8 @@ function prepareSourcesXenial {
     echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" > /etc/apt/sources.list.d/psql.list
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
     curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-    pkill .*upgrade.*
-    rm /var/lib/dpkg/lock
+    # pkill .*upgrade.*
+    # rm /var/lib/dpkg/lock
 }
 
 function prepareSourcesCentos6 {
@@ -49,8 +49,8 @@ function prepareSourcesForDistribution {
 }
 
 function installGGDeb {
-    apt update
-    apt install gluu-gateway -y
+    apt-get update
+    apt-get install gluu-gateway -y
 }
 
 function installGGRpm {
