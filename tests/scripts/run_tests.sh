@@ -39,7 +39,7 @@ echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
 # Config plugins
 ## OAUTH-AUTH
-OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
+OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","pass_credentials":"pass"},"service_id":"'$SERVICE_ID'"}'`
 
 OAUTH_PLUGIN_ID=`echo $OAUTH_PLUGIN_RESPONSE | jq -r ".id"`
 echo $OAUTH_PLUGIN_RESPONSE
@@ -132,7 +132,7 @@ echo "anonymous CONSUMER_ID " .. $anonymous_CONSUMER_ID
 
 # Config plugin
 ## UMA-AUTH
-UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-auth","config":{"anonymous": "'$anonymous_CONSUMER_ID'", "oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","hide_credentials":false},"service_id":"'$SERVICE_ID'"}'`
+UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-auth","config":{"anonymous": "'$anonymous_CONSUMER_ID'", "oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","pass_credentials":"pass"},"service_id":"'$SERVICE_ID'"}'`
 
 UMA_PLUGIN_ID=`echo $UMA_PLUGIN_RESPONSE | jq -r ".id"`
 echo "UMA_AUTH_PLUGIN_ID " .. $UMA_PLUGIN_ID
