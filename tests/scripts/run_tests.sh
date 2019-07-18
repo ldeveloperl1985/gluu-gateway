@@ -204,7 +204,7 @@ echo "PAT_TOKEN_RESPONSE:" .. $PAT_TOKEN_RESPONSE
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
 echo "PROTECTION Token " .. $TOKEN
 
-UMA_RS_PROTECT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H "Content-Type: application/json"  -H "Authorization: $TOKEN" -d '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}]}'`
+UMA_RS_PROTECT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}]}'`
 echo "UMA_RS_PROTECT_RESPONSE: " .. $UMA_RS_PROTECT_RESPONSE
 
 OIDC_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins -H "Content-Type: application/json" -d '{"name":"gluu-openid-connect","route_id":"'$ROUTE_ID'","config":{"oxd_id":"'$OXD_ID'","oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","op_url":"https://'$OP_HOST'","authorization_redirect_path":"/callback","logout_path":"/logout","post_logout_redirect_path_or_url":"/logout_redirect_uri","requested_scopes":["openid","oxd","email","profile"],"required_acrs":["auth_ldap_server"],"max_id_token_age":3600,"max_id_token_auth_age":3600}}'`
@@ -212,5 +212,8 @@ echo "OIDC_PLUGIN_RESPONSE: " .. $OIDC_PLUGIN_RESPONSE
 
 UMA_PEP_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins -H "Content-Type: application/json" -d '{"name":"gluu-uma-pep","route_id":"'$ROUTE_ID'","config":{"oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","op_url":"https://'$OP_HOST'","oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","uma_scope_expression":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}],"deny_by_default":false,"require_id_token":true,"obtain_rpt":true,"redirect_claim_gathering_url":true,"claims_redirect_path":"/claims_callback"}}'`
 echo "UMA_PEP_PLUGIN_RESPONSE: " .. $UMA_PEP_PLUGIN_RESPONSE
+
+GLUU_METRICS_RESPONSE=`curl -k -X GET http://localhost:8001/gluu-metrics`
+echo "GLUU_METRICS_RESPONSE: " .. $GLUU_METRICS_RESPONSE
 
 ss -ntlp
