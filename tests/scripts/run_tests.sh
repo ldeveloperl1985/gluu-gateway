@@ -216,7 +216,7 @@ echo "UMA_PEP_PLUGIN_RESPONSE: " .. $UMA_PEP_PLUGIN_RESPONSE
 GLUU_METRICS_RESPONSE=`curl -k -X GET http://localhost:8001/gluu-metrics`
 echo "GLUU_METRICS_RESPONSE: " .. $GLUU_METRICS_RESPONSE
 search_string="gluu_total_client_authenticated 8"
-if [[ $GLUU_METRICS_RESPONSE == *_"$search_string"_* ]];
+if [[ $GLUU_METRICS_RESPONSE =~ $search_string ]];
 then
     echo "Metrics Found Successfully"
 else
