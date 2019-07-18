@@ -201,7 +201,7 @@ echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
 PAT_TOKEN_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/get-client-token -H "Content-Type: application/json" -d '{"op_host":"https://'$OP_HOST'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","scope":["openid","oxd"]}'`
 echo "PAT_TOKEN_RESPONSE:" .. $PAT_TOKEN_RESPONSE
-TOKEN=`echo $RESPONSE | jq -r ".access_token"`
+TOKEN=`echo $PAT_TOKEN_RESPONSE | jq -r ".access_token"`
 echo "PROTECTION Token " .. $TOKEN
 
 UMA_RS_PROTECT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}]}'`
@@ -215,5 +215,13 @@ echo "UMA_PEP_PLUGIN_RESPONSE: " .. $UMA_PEP_PLUGIN_RESPONSE
 
 GLUU_METRICS_RESPONSE=`curl -k -X GET http://localhost:8001/gluu-metrics`
 echo "GLUU_METRICS_RESPONSE: " .. $GLUU_METRICS_RESPONSE
+search_string="gluu_total_client_authenticated 8"
+if [[ $GLUU_METRICS_RESPONSE == *_"$search_string"_* ]];
+then
+    echo "Metrics Found Successfully"
+else
+    echo "Failed to match metrics data gluu_total_client_authenticated 8"
+    exit 1
+fi
 
 ss -ntlp
