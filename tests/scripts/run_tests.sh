@@ -224,4 +224,42 @@ else
     exit 1
 fi
 
+###################################
+#### Configure OPA PEP
+###################################
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get -qqy update
+apt-get -qqy install docker-ce
+
+OPA_ID=`docker run -p 8181 -d --name opa openpolicyagent/opa:0.10.5 run --server`
+sleep 5
+
+OPA_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8181/tcp") 0).HostPort}}' $OPA_ID`
+
+SERVICE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/services/  -H 'Content-Type: application/json'  -d '{"name":"OAUTH-AUTH-OPA-Test","url":"https://jsonplaceholder.typicode.com"}'`
+SERVICE_ID=`echo $SERVICE_RESPONSE | jq -r ".id"`
+echo "SERVICE_ID " .. $SERVICE_ID
+
+ROUTE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/routes/ -H 'Content-Type: application/json' -d '{"hosts": ["opa-test.com"],"service": {"id": "'$SERVICE_ID'"}}'`
+ROUTE_ID=`echo $ROUTE_RESPONSE | jq -r ".id"`
+echo "ROUTE_ID " .. $ROUTE_ID
+
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site  -H "Content-Type: application/json" -d  '{"client_name":"test_oauth_pep","access_token_as_jwt":true,"rpt_as_jwt":true,"access_token_signing_alg":"RS256", "op_host":"https://'$OP_HOST'", "redirect_uris": ["https://client.example.com/cb"], "grant_types":["client_credentials"]}'`
+OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
+CLIENT_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".client_id"`
+CLIENT_SECRET=`echo $OP_CLIENT_RESPONSE | jq -r ".client_secret"`
+echo "OXD_ID " .. $OXD_ID
+echo "CLIENT_ID " .. $CLIENT_ID
+echo "CLIENT_SECRET " .. $CLIENT_SECRET
+
+OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","pass_credentials":"pass"},"service_id":"'$SERVICE_ID'"}'`
+
+OAUTH_PLUGIN_ID=`echo $OAUTH_PLUGIN_RESPONSE | jq -r ".id"`
+echo $OAUTH_PLUGIN_RESPONSE
+echo "OAUTH_AUTH_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
+
+OPA_PLUGIN_RESPONSE=`curl -v -i -sS -X POST  --url http://$KONG_ADMIN_HOST:8001/plugins/ --header 'content-type: application/json;charset=UTF-8' --data '{"name":"gluu-opa-pep","config":{"opa_url":"http://localhost:'$OPA_PORT'/v1/data/httpapi/authz?pretty=true&explain=full"},"service_id":"'$SERVICE_ID'"}'`
+
+
 ss -ntlp
