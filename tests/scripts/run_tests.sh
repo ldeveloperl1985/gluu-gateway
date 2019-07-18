@@ -232,6 +232,7 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
 apt-get -qqy update
 apt-get -qqy install docker-ce
 
+
 OPA_ID=`docker run -p 8181 -d --name opa openpolicyagent/opa:0.10.5 run --server`
 sleep 5
 
@@ -253,13 +254,33 @@ echo "OXD_ID " .. $OXD_ID
 echo "CLIENT_ID " .. $CLIENT_ID
 echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
+sed -i '12iinput.request_token_data.client_id = "'$CLIENT_ID'"' policy.rego
+
+OPA_POLICY_ADD=`curl -X PUT --data-binary @policy.rego localhost:$OPA_PORT/v1/policies/example`
+
 OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","pass_credentials":"pass"},"service_id":"'$SERVICE_ID'"}'`
+echo $OAUTH_PLUGIN_RESPONSE
 
 OAUTH_PLUGIN_ID=`echo $OAUTH_PLUGIN_RESPONSE | jq -r ".id"`
-echo $OAUTH_PLUGIN_RESPONSE
 echo "OAUTH_AUTH_PLUGIN_ID " .. $OAUTH_PLUGIN_ID
 
 OPA_PLUGIN_RESPONSE=`curl -v -i -sS -X POST  --url http://$KONG_ADMIN_HOST:8001/plugins/ --header 'content-type: application/json;charset=UTF-8' --data '{"name":"gluu-opa-pep","config":{"opa_url":"http://localhost:'$OPA_PORT'/v1/data/httpapi/authz?pretty=true&explain=full"},"service_id":"'$SERVICE_ID'"}'`
+echo "OPA_PLUGIN_RESPONSE: " .. $OPA_PLUGIN_RESPONSE
 
+# OAUTH
+RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/get-client-token -H "Content-Type: application/json" -d '{"client_id":"'$CONSUMER_CLIENT_ID'","client_secret":"'$CONSUMER_CLIENT_SECRET'","op_host":"'$OP_HOST'", "scope":["openid", "oxd", "uma_protection"]}'`
+TOKEN=`echo $RESPONSE | jq -r ".access_token"`
+echo "Access Token " .. $TOKEN
+
+curl -X GET http://$KONG_PROXY_HOST:8000/posts/1 -H "Authorization: Bearer $TOKEN"  -H 'Host: opa-test.com'
+curl -X GET http://$KONG_PROXY_HOST:8000/posts/1 -H "Authorization: Bearer $TOKEN"  -H 'Host: opa-test.com'
+curl -X GET http://$KONG_PROXY_HOST:8000/posts/1 -H "Authorization: Bearer $TOKEN"  -H 'Host: opa-test.com'
+
+CHECK_STATUS=`curl -H "Authorization: Bearer $TOKEN"  -H 'Host: opa-test.com' --write-out "%{http_code}\n" --silent --output /dev/null http://$KONG_PROXY_HOST:8000/posts/1`
+
+if [ "$CHECK_STATUS" != "200" ]; then
+    echo "OAuth PEP security fail"
+    exit 1
+fi
 
 ss -ntlp
