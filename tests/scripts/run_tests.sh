@@ -204,7 +204,7 @@ echo "PAT_TOKEN_RESPONSE:" .. $PAT_TOKEN_RESPONSE
 TOKEN=`echo $RESPONSE | jq -r ".access_token"`
 echo "PROTECTION Token " .. $TOKEN
 
-UMA_RS_PROTECT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H 'Authorization: '$TOKEN'' -d '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}]}'`
+UMA_RS_PROTECT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/uma-rs-protect -H "Content-Type: application/json"  -H 'Authorization: '$TOKEN'' -d '{"oxd_id":"'$OXD_ID'","resources":[{"path":"/users/??","conditions":[{"httpMethods":["GET"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["with-claims"]}}]}]}'`
 echo "UMA_RS_PROTECT_RESPONSE: " .. $UMA_RS_PROTECT_RESPONSE
 
 OIDC_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins -H "Content-Type: application/json" -d '{"name":"gluu-openid-connect","route_id":"'$ROUTE_ID'","config":{"oxd_id":"'$OXD_ID'","oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","op_url":"https://'$OP_HOST'","authorization_redirect_path":"/callback","logout_path":"/logout","post_logout_redirect_path_or_url":"/logout_redirect_uri","requested_scopes":["openid","oxd","email","profile"],"required_acrs":["auth_ldap_server"],"max_id_token_age":3600,"max_id_token_auth_age":3600}}'`
