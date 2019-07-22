@@ -189,7 +189,7 @@ ROUTE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/routes/ -H 'Content
 ROUTE_ID=`echo $ROUTE_RESPONSE | jq -r ".id"`
 echo "ROUTE_ID " .. $ROUTE_ID
 
-OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site -H "Content-Type: application/json" -d '{"op_host":"https://'$OP_HOST'","oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","redirect_uris":["https://'$KONG_PROXY_HOST'/callback"],"client_name":"gg-openid-connect-client","post_logout_redirect_uris":["https://'$KONG_PROXY_HOST'/logout_redirect_uri"],"scope":["openid","oxd","email","profile"],"acr_values":["auth_ldap_server"],"grant_types":["client_credentials","authorization_code","refresh_token"],"claims_redirect_uri":["https://'$KONG_PROXY_HOST'/claims_callback"]}'`
+OP_CLIENT_RESPONSE=`curl -k -X POST https://$OXD_HOST:$OXD_PORT/register-site -H "Content-Type: application/json" -d '{"op_host":"https://'$OP_HOST'","oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","redirect_uris":["https://'$KONG_PROXY_HOST'/callback"],"client_name":"gg-openid-connect-client","post_logout_redirect_uris":["https://'$KONG_PROXY_HOST'/logout_redirect_uri"],"scope":["openid","oxd","email","profile", "uma_protection"],"acr_values":["auth_ldap_server"],"grant_types":["client_credentials","authorization_code","refresh_token"],"claims_redirect_uri":["https://'$KONG_PROXY_HOST'/claims_callback"]}'`
 
 echo "OP_CLIENT_RESPONSE: " .. $OP_CLIENT_RESPONSE
 OXD_ID=`echo $OP_CLIENT_RESPONSE | jq -r ".oxd_id"`
@@ -254,8 +254,8 @@ echo "OXD_ID " .. $OXD_ID
 echo "CLIENT_ID " .. $CLIENT_ID
 echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
+wget https://raw.githubusercontent.com/ldeveloperl1985/gluu-gateway/master/tests/scripts/policy.rego
 sed -i '12iinput.request_token_data.client_id = "'$CLIENT_ID'"' policy.rego
-
 OPA_POLICY_ADD=`curl -X PUT --data-binary @policy.rego localhost:$OPA_PORT/v1/policies/example`
 
 OAUTH_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-oauth-auth","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","pass_credentials":"pass"},"service_id":"'$SERVICE_ID'"}'`
