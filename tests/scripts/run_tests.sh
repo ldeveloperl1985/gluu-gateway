@@ -88,9 +88,9 @@ if [ "$CHECK_STATUS" != "200" ]; then
 fi
 
 # =========================================================================
-# Create another service in kong
+# UMA Auth and PEP
 echo "========================================================================="
-echo "Create another service in kong"
+echo "UMA Auth and PEP"
 
 SERVICE_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/services/  -H 'Content-Type: application/json'  -d '{"name":"jsonplaceholder2","url":"https://jsonplaceholder.typicode.com"}'`
 
@@ -138,7 +138,7 @@ UMA_PLUGIN_ID=`echo $UMA_PLUGIN_RESPONSE | jq -r ".id"`
 echo "UMA_AUTH_PLUGIN_ID " .. $UMA_PLUGIN_ID
 
 ## UMA-PEP
-UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-pep","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","uma_scope_expression":[{"path":"/posts/??","conditions":[{"httpMethods":["GET","POST","PUT","PATCH","DELETE"]}]},{"path":"/comments/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT","PATCH"]}]}],"method_path_tree":{"DELETE":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"PUT":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"POST":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"PATCH":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}},"GET":{"posts":{"??":{"#":{"path":"/posts/??"}}},"comments":{"??":{"#":{"path":"/comments/??"}}}}},"deny_by_default":true},"service_id":"'$SERVICE_ID'"}'`
+UMA_PLUGIN_RESPONSE=`curl -k -X POST http://$KONG_ADMIN_HOST:8001/plugins/  -H 'Content-Type: application/json'  -d '{"name":"gluu-uma-pep","config":{"oxd_url":"https://'$OXD_HOST':'$OXD_PORT'","op_url":"https://'$OP_HOST'","oxd_id":"'$OXD_ID'","client_id":"'$CLIENT_ID'","client_secret":"'$CLIENT_SECRET'","uma_scope_expression":[{"path":"/posts/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0},{"var":1}]},"data":["admin","employee"]}}]},{"path":"/comments/??","conditions":[{"httpMethods":["GET","DELETE","POST","PUT"],"scope_expression":{"rule":{"and":[{"var":0}]},"data":["admin"]}}]}],"deny_by_default":true},"service_id":"'$SERVICE_ID'"}'`
 
 UMA_PLUGIN_ID=`echo $UMA_PLUGIN_RESPONSE | jq -r ".id"`
 echo "UMA_PEP_PLUGIN_ID " .. $UMA_PLUGIN_ID
