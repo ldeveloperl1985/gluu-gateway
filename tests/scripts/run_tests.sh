@@ -254,6 +254,7 @@ echo "OXD_ID " .. $OXD_ID
 echo "CLIENT_ID " .. $CLIENT_ID
 echo "CLIENT_SECRET " .. $CLIENT_SECRET
 
+cd /root
 wget https://raw.githubusercontent.com/ldeveloperl1985/gluu-gateway/master/tests/scripts/policy.rego
 sed -i '12iinput.request_token_data.client_id = "'$CLIENT_ID'"' policy.rego
 OPA_POLICY_ADD=`curl -X PUT --data-binary @policy.rego localhost:$OPA_PORT/v1/policies/example`
