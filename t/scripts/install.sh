@@ -7,7 +7,7 @@ HOST_IP=$4
 OXD_HOST=$5
 
 function prepareSourcesXenial {
-    sleep 60
+    sleep 120
     apt-get update
     echo "deb https://repo.gluu.org/ubuntu/ xenial-devel main" > /etc/apt/sources.list.d/gluu-repo.list
     curl https://repo.gluu.org/ubuntu/gluu-apt.key | apt-key add -
